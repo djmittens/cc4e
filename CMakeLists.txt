@@ -10,3 +10,4 @@ endif()
 
 add_executable(calc calc.c)
 add_executable(uniq uniq.c)
+add_executable(itox itox.c)

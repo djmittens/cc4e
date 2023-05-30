@@ -7,7 +7,7 @@ int main()
     char line[1000];
     char keep[1000];
 
-    FILE *handle = fopen("../uniq.input.txt", "r");
+    FILE *handle = fopen("inputs/uniq.input.txt", "r");
 
     if (handle == NULL)
     {
@@ -24,4 +24,5 @@ int main()
     }
 
     fclose(handle); // hah always close
+    return EXIT_SUCCESS;
 }

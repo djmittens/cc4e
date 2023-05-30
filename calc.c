@@ -8,7 +8,7 @@ int main()
     char opcode;
     float value, display = 0.0;
 
-    FILE *handle = fopen("../calc.input.txt", "r");
+    FILE *handle = fopen("inputs/calc.input.txt", "r");
 
     while (fgets(line, 256, handle) != NULL)
     {
