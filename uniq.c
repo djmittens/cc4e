@@ -4,6 +4,7 @@
 
 int main()
 {
+
     char line[1000];
     char keep[1000];
 
