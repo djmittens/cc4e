@@ -45,6 +45,8 @@ int main()
 
     printf("Memory:\n%s\n", memory);
 
+    printf("sizeof(float):          %lld\n", sizeof(float));
+    printf("sizeof(double):         %lld\n", sizeof(double));
     printf("sizeof(char):           %lld\n", sizeof(char));
     printf("sizeof(short):          %lld\n", sizeof(short));
     printf("sizeof(int):            %lld\n", sizeof(int));
