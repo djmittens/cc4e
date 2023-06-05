@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 int main()
 {
-    char *input[] = {
+    const char *input[] = {
         "42 > 114 > 105 > 97 > ",
-        "110 < < < < 66"};
+        "110 < < < < 66"
+    };
 
     char memory[256], token[256];
     int head = 0, value;
@@ -42,4 +44,15 @@ int main()
     }
 
     printf("Memory:\n%s\n", memory);
+
+    printf("sizeof(char):           %lld\n", sizeof(char));
+    printf("sizeof(short):          %lld\n", sizeof(short));
+    printf("sizeof(int):            %lld\n", sizeof(int));
+    printf("sizeof(long):           %lld\n", sizeof(long));
+    printf("sizeof(long long):      %lld\n", sizeof(long long));
+    printf("sizeof(uint64_t):       %lld\n", sizeof(uint64_t));
+    printf("sizeof(int64_t):        %lld\n", sizeof(int64_t));
+    printf("sizeof(int8_t):         %lld\n", sizeof(int8_t));
+    printf("sizeof(&input):         %lld\n", sizeof(&input));
+    printf("sizeof(input):          %lld\n", sizeof(input));
 }
