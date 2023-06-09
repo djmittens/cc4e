@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <windows.h>
 
 int main()
 {
@@ -25,5 +26,7 @@ int main()
     }
 
     fclose(handle); // hah always close
+                    // 
+    MessageBoxA(NULL, "Hey im a box", "Hello World", MB_YESNOCANCEL | MB_ICONEXCLAMATION);
     return EXIT_SUCCESS;
 }
