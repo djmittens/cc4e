@@ -10,10 +10,6 @@ typedef struct MapEntry
     struct MapEntry *next;
 } *MapEntryPtr;
 
-typedef struct HashMapIter
-{
-} *HashMapIterPtr;
-
 typedef struct HashMap
 {
     int __count;
@@ -25,7 +21,7 @@ typedef struct HashMap
     // void (*del)(struct HashMap* self, char *key); TODO(nick): I dont feel like it.
     int (*size)(struct HashMap *self);
     void (*dump)(struct HashMap *self);
-    HashMapIterPtr (*iter)(struct HashMap *self, char *key);
+    // HashMapIterPtr (*iter)(struct HashMap *self, char *key);
 } *HashMapPtr;
 
 uint32_t __hash(char * key) {
@@ -68,9 +64,10 @@ MapEntryPtr __new_MapEntry(char *key, int val)
 {
     static const int MAX_KEY_LEN = 100;
     MapEntryPtr res = malloc(sizeof(*res));
-    int ds = strnlen_s(key, MAX_KEY_LEN) + 1; // account for null byte
-    res->key = malloc(ds);
-    strncpy_s(res->key, ds, key, MAX_KEY_LEN);
+    // int ds = strnlen_s(key, MAX_KEY_LEN) + 1; // account for null byte
+    // res->key = malloc(ds);
+    // strncpy_s(res->key, ds, key, MAX_KEY_LEN);
+    res->key = strndup(key, MAX_KEY_LEN);
     res->value = val;
     res->next = NULL;
     return res;

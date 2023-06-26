@@ -17,7 +17,7 @@ LNODE *new_list()
     return list;
 }
 
-int free_list(LNODE *list)
+void free_list(LNODE *list)
 {
     while (list != NULL)
     {

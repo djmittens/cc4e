@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.26 FATAL_ERROR)
 
 project (cc4e LANGUAGES C)
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED TRUE)
 
 if(WIN32)
@@ -17,3 +17,4 @@ add_executable(simple_machine simple_machine.c)
 add_executable(touring touring.c)
 add_executable(llist llist.c)
 add_executable(hmap hmap.c)
+add_executable(tmap tmap.c)
