@@ -53,7 +53,7 @@ HashMapPtr new_HashMap(int nbuckets)
         res->__heads[i] = NULL;
     }
     // interface
-    void HashMap_put(struct HashMap * self, char *key, int value);
+    void HashMap_put(struct HashMap *self, char *key, int value);
     int HashMap_get(struct HashMap * self, char *key, int _default);
     int HashMap_size(struct HashMap * self);
     void HashMap_dump(struct HashMap * self);
