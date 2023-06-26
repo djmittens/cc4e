@@ -45,18 +45,18 @@ typedef struct TreeMap
     void (*free)(struct TreeMap *self);
     void (*dump)(struct TreeMap *self);
     PtrTreeMap_Iter (*iter)(struct TreeMap *self);
-} *TreeMapPtr;
+} *PtrTreeMap;
 
-TreeMapPtr TreeMap_new()
+PtrTreeMap TreeMap_new()
 {
-    TreeMapPtr res = malloc(sizeof(*res));
+    PtrTreeMap res = malloc(sizeof(*res));
     res->__head = NULL;
     void __TreeMap_put(struct TreeMap * self, char *key, int value);
     int __TreeMap_get(struct TreeMap * self, char *key);
     int __TreeMap_size(struct TreeMap * self);
     PtrTreeMap_Iter __TreeMap_iter(struct TreeMap * self);
-    void __TreeMap_dump(TreeMapPtr self);
-    void __TreeMap_free(TreeMapPtr self);
+    void __TreeMap_dump(PtrTreeMap self);
+    void __TreeMap_free(PtrTreeMap self);
     res->put = __TreeMap_put;
     res->get = __TreeMap_get;
     res->size = __TreeMap_size;
@@ -66,7 +66,7 @@ TreeMapPtr TreeMap_new()
     return res;
 }
 
-void __TreeMap_free(TreeMapPtr self)
+void __TreeMap_free(PtrTreeMap self)
 {
     PtrTreeMap_Iter iter = self->iter(self);
 
@@ -89,15 +89,48 @@ void __TreeMap_put(struct TreeMap *self, char *key, int value)
     new->__next = tmp;
     new->__left = tmp;
     self->__head = new;
+    // if(self->__root == NULL) {
+    //     self->__root = new;
+    // }
+}
+
+PtrTreeMap_Entry __TreeMapEntry_dfs(
+    PtrTreeMap_Entry self,
+    int depth,
+    int (*visit)(PtrTreeMap_Entry node, int depth))
+{
+    if (visit(self, depth))
+    {
+        return self;
+    }
+    PtrTreeMap_Entry res = NULL;
+    if (self->__left != NULL)
+    {
+        res = __TreeMapEntry_dfs(self->__left, depth + 1, visit);
+    }
+    if (self->__right != NULL)
+    {
+        res = __TreeMapEntry_dfs(self->__right, depth + 1, visit);
+    }
+    return res;
 }
 
 int __TreeMap_get(struct TreeMap *self, char *key)
 {
 }
 
-void __TreeMap_dump(TreeMapPtr self)
+int __TreeMap_dump_node(PtrTreeMap_Entry self, int depth)
 {
-    printf("Hello World !!!!");
+    for (int i = 0; i < depth; ++i)
+    {
+        printf(" |");
+    }
+    printf(" %s -> %d\n", self->key, self->value);
+    return 0;
+}
+void __TreeMap_dump(PtrTreeMap self)
+{
+    __TreeMapEntry_dfs(self->__head, 0, __TreeMap_dump_node);
 }
 int __TreeMap_size(struct TreeMap *self)
 {
@@ -115,7 +148,8 @@ PtrTreeMap_Iter __TreeMap_iter(struct TreeMap *self)
 int main(void)
 {
     printf("Testing TreeMap\n");
-    TreeMapPtr map = TreeMap_new();
+
+    PtrTreeMap map = TreeMap_new();
     map->put(map, "h", 42);
     map->put(map, "d", 8);
     map->put(map, "f", 5);
@@ -126,7 +160,6 @@ int main(void)
     map->put(map, "f", 6);
 
     map->dump(map);
-    map->free(map);
+    // map->free(map);
     return EXIT_SUCCESS;
 }
-
