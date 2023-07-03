@@ -45,24 +45,33 @@ typedef struct TreeMap
     void (*free)(struct TreeMap *self);
     void (*dump)(struct TreeMap *self);
     PtrTreeMap_Iter (*iter)(struct TreeMap *self);
-} *PtrTreeMap;
+} TreeMap, *PtrTreeMap;
 
 PtrTreeMap TreeMap_new()
 {
     PtrTreeMap res = malloc(sizeof(*res));
-    res->__head = NULL;
-    void __TreeMap_put(struct TreeMap * self, char *key, int value);
-    int __TreeMap_get(struct TreeMap * self, char *key);
-    int __TreeMap_size(struct TreeMap * self);
-    PtrTreeMap_Iter __TreeMap_iter(struct TreeMap * self);
-    void __TreeMap_dump(PtrTreeMap self);
-    void __TreeMap_free(PtrTreeMap self);
-    res->put = __TreeMap_put;
-    res->get = __TreeMap_get;
-    res->size = __TreeMap_size;
-    res->iter = __TreeMap_iter;
-    res->free = __TreeMap_free;
-    res->dump = __TreeMap_dump;
+    if (res)
+    {
+        res->__count = 0;
+        res->__head = NULL;
+        res->__root = NULL;
+        void __TreeMap_put(struct TreeMap * self, char *key, int value);
+        int __TreeMap_get(struct TreeMap * self, char *key);
+        int __TreeMap_size(struct TreeMap * self);
+        void __TreeMap_dump(PtrTreeMap self);
+        void __TreeMap_free(PtrTreeMap self);
+        PtrTreeMap_Iter __TreeMap_iter(struct TreeMap * self);
+        res->put = __TreeMap_put;
+        res->get = __TreeMap_get;
+        res->size = __TreeMap_size;
+        res->free = __TreeMap_free;
+        res->dump = __TreeMap_dump;
+        res->iter = __TreeMap_iter;
+    }
+    else
+    {
+        printf("Could not allocate the map itself\n");
+    }
     return res;
 }
 
@@ -82,16 +91,32 @@ void __TreeMap_put(struct TreeMap *self, char *key, int value)
 {
     PtrTreeMap_Entry tmp = self->__head;
     PtrTreeMap_Entry new = malloc(sizeof(*new));
-    int klen = strnlen(key, 100); // TODO(nick) : make this a constant
-    new->key = malloc(klen + 1); // Maybe this alloc should be zeroed ? 
-    strncpy(new->key, key, 100);
-    new->value = value;
-    new->__next = tmp;
-    new->__left = tmp;
-    new->__right = NULL; // TODO (nick) : there was a bug here, for uninitilized memory, how do we catch this?
-    self->__head = new;
-    if(self->__root == NULL) {
-        self->__root = new;
+    if (new)
+    {
+        int klen = strnlen(key, 100); // TODO(nick) : make this a constant
+        new->key = malloc(klen + 1);  // Maybe this alloc should be zeroed ?
+        if (new->key)
+        {
+            strncpy(new->key, key, klen + 1);
+        }
+        else
+        {
+            printf("could not allocate key buffer\n");
+            new->key = NULL;
+        }
+        new->value = value;
+        new->__next = tmp;
+        new->__left = tmp;
+        new->__right = NULL; // TODO (nick) : there was a bug here, for uninitilized memory, how do we catch this?
+        self->__head = new;
+        if (self->__root == NULL)
+        {
+            self->__root = new;
+        }
+    }
+    else
+    {
+        printf("Error allocating memory for treemap entry\n");
     }
 }
 
@@ -100,6 +125,15 @@ PtrTreeMap_Entry __TreeMapEntry_dfs(
     int depth,
     int (*visit)(PtrTreeMap_Entry node, int depth))
 {
+    if(self == NULL) {
+        return NULL;
+    }
+    for (int i = 0; i < depth; ++i)
+    {
+        printf("-|");
+    }
+    printf(" %s -> %d\n", self->key, self->value);
+    if(self == NULL)
     if (visit(self, depth))
     {
         return self;
@@ -122,16 +156,21 @@ int __TreeMap_get(struct TreeMap *self, char *key)
 
 int __TreeMap_dump_node(PtrTreeMap_Entry self, int depth)
 {
-    for (int i = 0; i < depth; ++i)
+    if (self != NULL)
     {
-        printf("-|");
+        for (int i = 0; i < depth; ++i)
+        {
+            printf("-|");
+        }
+        printf(" %s -> %d\n", self->key, self->value);
     }
-    printf(" %s -> %d\n", self->key, self->value);
     return 0;
 }
 void __TreeMap_dump(PtrTreeMap self)
 {
-    __TreeMapEntry_dfs(self->__head, 0, __TreeMap_dump_node);
+    if(self)  {
+        __TreeMapEntry_dfs(self->__head, 0, __TreeMap_dump_node);
+    }
 }
 int __TreeMap_size(struct TreeMap *self)
 {
@@ -139,7 +178,7 @@ int __TreeMap_size(struct TreeMap *self)
 }
 PtrTreeMap_Iter __TreeMap_iter(struct TreeMap *self)
 {
-    PtrTreeMap_Iter res = malloc(sizeof(*res));
+    PtrTreeMap_Iter res = malloc(sizeof((*res)));
     res->next = __TreeMap_Iter_next;
     res->head = self->__head;
     res->free = __TreeMap_Iter_free;
@@ -151,16 +190,19 @@ int main(void)
     printf("Testing TreeMap\n");
 
     PtrTreeMap map = TreeMap_new();
-    map->put(map, "h", 42);
-    map->put(map, "d", 8);
-    map->put(map, "f", 5);
-    map->put(map, "b", 123);
-    map->put(map, "k", 9);
-    map->put(map, "m", 67);
-    map->put(map, "j", 12);
-    map->put(map, "f", 6);
+    if (map)
+    {
+        map->put(map, "h", 42);
+        map->put(map, "d", 8);
+        map->put(map, "f", 5);
+        map->put(map, "b", 123);
+        map->put(map, "k", 9);
+        map->put(map, "m", 67);
+        map->put(map, "j", 12);
+        map->put(map, "f", 6);
 
-    map->dump(map);
+        map->dump(map);
+    }
     // map->free(map);
     return EXIT_SUCCESS;
 }
