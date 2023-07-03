@@ -82,16 +82,17 @@ void __TreeMap_put(struct TreeMap *self, char *key, int value)
 {
     PtrTreeMap_Entry tmp = self->__head;
     PtrTreeMap_Entry new = malloc(sizeof(*new));
-    int klen = strnlen(key, 10);
-    new->key = malloc(klen + 1);
-    strncpy(new->key, key, klen);
+    int klen = strnlen(key, 100); // TODO(nick) : make this a constant
+    new->key = malloc(klen + 1); // Maybe this alloc should be zeroed ? 
+    strncpy(new->key, key, 100);
     new->value = value;
     new->__next = tmp;
     new->__left = tmp;
+    new->__right = NULL; // TODO (nick) : there was a bug here, for uninitilized memory, how do we catch this?
     self->__head = new;
-    // if(self->__root == NULL) {
-    //     self->__root = new;
-    // }
+    if(self->__root == NULL) {
+        self->__root = new;
+    }
 }
 
 PtrTreeMap_Entry __TreeMapEntry_dfs(
@@ -123,7 +124,7 @@ int __TreeMap_dump_node(PtrTreeMap_Entry self, int depth)
 {
     for (int i = 0; i < depth; ++i)
     {
-        printf(" |");
+        printf("-|");
     }
     printf(" %s -> %d\n", self->key, self->value);
     return 0;

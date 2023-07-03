@@ -64,10 +64,11 @@ MapEntryPtr __new_MapEntry(char *key, int val)
 {
     static const int MAX_KEY_LEN = 100;
     MapEntryPtr res = malloc(sizeof(*res));
-    // int ds = strnlen_s(key, MAX_KEY_LEN) + 1; // account for null byte
-    // res->key = malloc(ds);
-    // strncpy_s(res->key, ds, key, MAX_KEY_LEN);
-    res->key = strndup(key, MAX_KEY_LEN);
+    int ds = strnlen(key, MAX_KEY_LEN); // account for null byte
+    res->key = malloc(ds + 1);
+    strncpy(res->key, key, ds);
+    // TODO(nick): make this cross platform, ca;use strnlen_s is not available on mac
+    // res->key = strndup(key, MAX_KEY_LEN); // Thats hilarious windows doesnt have this function
     res->value = val;
     res->next = NULL;
     return res;
