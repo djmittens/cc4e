@@ -2,11 +2,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+
+const uint8_t TreeMap_Entry_BLACK = 0;
+const uint8_t TreeMap_Entry_RED = 1;
 
 typedef struct TreeMap_Entry
 {
     char *key;
     int value;
+    uint8_t color;
     struct TreeMap_Entry *__next;
     struct TreeMap_Entry *__left;
     struct TreeMap_Entry *__right;
@@ -87,7 +92,39 @@ void __TreeMap_free(PtrTreeMap self)
     free(self);
 }
 
-void __TreeMap_put(struct TreeMap *self, char *key, int value)
+void __TreeMap_insertNode(PtrTreeMap_Entry root, PtrTreeMap_Entry node)
+{
+    if (strncmp(root->key, node->key, 100) > 0) // TOOD(nick): MAX count here
+    {
+        if (root->__right == NULL)
+        {
+            node->color = TreeMap_Entry_RED;
+            root->__right = node;
+        }
+        else
+        {
+            __TreeMap_insertNode(root->__right, node);
+        }
+    }
+    else
+    {
+        if (root->__left == NULL)
+        {
+            node->color = TreeMap_Entry_RED;
+            root->__left = node;
+        }
+        else
+        {
+            __TreeMap_insertNode(root->__left, node);
+        }
+    }
+}
+
+void __TreeMap_balance(PtrTreeMap_Entry root)
+{
+}
+
+void __TreeMap_put(PtrTreeMap self, char *key, int value)
 {
     PtrTreeMap_Entry tmp = self->__head;
     PtrTreeMap_Entry new = malloc(sizeof(*new));
@@ -106,12 +143,17 @@ void __TreeMap_put(struct TreeMap *self, char *key, int value)
         }
         new->value = value;
         new->__next = tmp;
-        new->__left = tmp;
-        new->__right = NULL; // TODO (nick) : there was a bug here, for uninitilized memory, how do we catch this?
+        new->__left = NULL;
+        new->__right = NULL;              // TODO (nick) : there was a bug here, for uninitilized memory, how do we catch this?
+        new->color = TreeMap_Entry_BLACK; // By default we also start as black
         self->__head = new;
         if (self->__root == NULL)
         {
             self->__root = new;
+        }
+        else
+        {
+            __TreeMap_insertNode(self->__root, new);
         }
     }
     else
@@ -120,33 +162,35 @@ void __TreeMap_put(struct TreeMap *self, char *key, int value)
     }
 }
 
-PtrTreeMap_Entry __TreeMapEntry_dfs(
+PtrTreeMap_Entry __TreeMapEntry_traverse(
     PtrTreeMap_Entry self,
     int depth,
+    uint8_t isBfs,
     int (*visit)(PtrTreeMap_Entry node, int depth))
 {
-    if(self == NULL) {
+    if (self == NULL)
         return NULL;
-    }
-    for (int i = 0; i < depth; ++i)
+
+    if (isBfs)
     {
-        printf("-|");
+        visit(self, depth);
     }
-    printf(" %s -> %d\n", self->key, self->value);
-    if(self == NULL)
-    if (visit(self, depth))
-    {
-        return self;
-    }
+
     PtrTreeMap_Entry res = NULL;
     if (self->__left != NULL)
     {
-        res = __TreeMapEntry_dfs(self->__left, depth + 1, visit);
+        res = __TreeMapEntry_traverse(self->__left, depth + 1, isBfs, visit);
     }
     if (self->__right != NULL)
     {
-        res = __TreeMapEntry_dfs(self->__right, depth + 1, visit);
+        res = __TreeMapEntry_traverse(self->__right, depth + 1, isBfs, visit);
     }
+
+    if (!isBfs)
+    {
+        visit(self, depth);
+    }
+
     return res;
 }
 
@@ -162,15 +206,22 @@ int __TreeMap_dump_node(PtrTreeMap_Entry self, int depth)
         {
             printf("-|");
         }
+
+        if (self->color == TreeMap_Entry_BLACK)
+        {
+            printf(" [BLACK]");
+        }
+        else
+        {
+            printf(" [RED]");
+        }
         printf(" %s -> %d\n", self->key, self->value);
     }
     return 0;
 }
 void __TreeMap_dump(PtrTreeMap self)
 {
-    if(self)  {
-        __TreeMapEntry_dfs(self->__head, 0, __TreeMap_dump_node);
-    }
+    __TreeMapEntry_traverse(self->__root, 0, 1, __TreeMap_dump_node);
 }
 int __TreeMap_size(struct TreeMap *self)
 {
@@ -194,7 +245,7 @@ int main(void)
     {
         map->put(map, "h", 42);
         map->put(map, "d", 8);
-        map->put(map, "f", 5);
+        // map->put(map, "f", 5);
         map->put(map, "b", 123);
         map->put(map, "k", 9);
         map->put(map, "m", 67);
