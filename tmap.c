@@ -11,10 +11,8 @@ typedef struct TreeMap_Entry
 {
     char *key;
     int value;
-    uint8_t color;
-    struct TreeMap_Entry *__next;
-    struct TreeMap_Entry *__left;
-    struct TreeMap_Entry *__right;
+    uint8_t __color;
+    struct TreeMap_Entry *__next, *__parent, *__left, *__right;
 } *PtrTreeMap_Entry;
 
 typedef struct TreeMap_Iter
@@ -98,7 +96,8 @@ void __TreeMap_insertNode(PtrTreeMap_Entry root, PtrTreeMap_Entry node)
     {
         if (root->__right == NULL)
         {
-            node->color = TreeMap_Entry_RED;
+            node->__color = TreeMap_Entry_RED;
+            node->__parent = root;
             root->__right = node;
         }
         else
@@ -110,7 +109,8 @@ void __TreeMap_insertNode(PtrTreeMap_Entry root, PtrTreeMap_Entry node)
     {
         if (root->__left == NULL)
         {
-            node->color = TreeMap_Entry_RED;
+            node->__color = TreeMap_Entry_RED;
+            node->__parent = root;
             root->__left = node;
         }
         else
@@ -120,11 +120,33 @@ void __TreeMap_insertNode(PtrTreeMap_Entry root, PtrTreeMap_Entry node)
     }
 }
 
-void __TreeMap_balance(PtrTreeMap_Entry root)
+void fix_node(PtrTreeMap_Entry node)
 {
+    printf("Fixing invalid node [%p]: %s\n", node, node->key);
+    // If aunt is black we recolor
+    // if aunt is read we rebalance
+
+}
+
+void balance(PtrTreeMap_Entry node)
+{
+    if (node == NULL)
+        return;
+
+    // Check the __color of the node
+    if (node->__parent != NULL)
+    {
+        if (node->__color == TreeMap_Entry_RED && node->__parent->__color == TreeMap_Entry_RED)
+        {
+            fix_node(node);
+        }
+    }
+
+    balance(node->__parent);
 }
 
 void __TreeMap_put(PtrTreeMap self, char *key, int value)
+
 {
     PtrTreeMap_Entry tmp = self->__head;
     PtrTreeMap_Entry new = malloc(sizeof(*new));
@@ -143,9 +165,10 @@ void __TreeMap_put(PtrTreeMap self, char *key, int value)
         }
         new->value = value;
         new->__next = tmp;
+        new->__parent = NULL;
         new->__left = NULL;
-        new->__right = NULL;              // TODO (nick) : there was a bug here, for uninitilized memory, how do we catch this?
-        new->color = TreeMap_Entry_BLACK; // By default we also start as black
+        new->__right = NULL;                // TODO (nick) : there was a bug here, for uninitilized memory, how do we catch this?
+        new->__color = TreeMap_Entry_BLACK; // By default we also start as black
         self->__head = new;
         if (self->__root == NULL)
         {
@@ -154,6 +177,7 @@ void __TreeMap_put(PtrTreeMap self, char *key, int value)
         else
         {
             __TreeMap_insertNode(self->__root, new);
+            balance(new);
         }
     }
     else
@@ -207,7 +231,7 @@ int __TreeMap_dump_node(PtrTreeMap_Entry self, int depth)
             printf("-|");
         }
 
-        if (self->color == TreeMap_Entry_BLACK)
+        if (self->__color == TreeMap_Entry_BLACK)
         {
             printf(" [BLACK]");
         }
