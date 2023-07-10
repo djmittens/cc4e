@@ -366,11 +366,11 @@ int __TreeMap_test_each_path_has_same_num_black_nodes(PtrTreeMap self)
     // This forumalation, of this algorithm, could potentially be implemented with find
     // and globals, however it was fun to write this implementation anyway
     int pass = 1;
-    int max_height = (int)log2((double)self->__count) + 2;
+    int max_height = self->__count;
     PtrTreeMap_Entry *path_buf = malloc(sizeof(*path_buf) * max_height);
     PtrTreeMap_Entry *head = path_buf;
     *path_buf = self->__root;
-    
+
     int blacks_per_path = 0;
     while (head >= path_buf)
     {
@@ -397,14 +397,17 @@ int __TreeMap_test_each_path_has_same_num_black_nodes(PtrTreeMap self)
             {
                 if (h->__color == TreeMap_Entry_BLACK)
                 {
-                    black_counter ++;
+                    black_counter++;
                 }
                 h = h->__parent;
             }
             printf("Leaf found %s #[%d]\n", node->key, black_counter);
-            if(!blacks_per_path) {
+            if (!blacks_per_path)
+            {
                 blacks_per_path = black_counter;
-            } else if (blacks_per_path != black_counter) {
+            }
+            else if (blacks_per_path != black_counter)
+            {
                 pass = 0;
             }
         }
