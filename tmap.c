@@ -120,12 +120,120 @@ void __TreeMap_insertNode(PtrTreeMap_Entry root, PtrTreeMap_Entry node)
     }
 }
 
-void fix_node(PtrTreeMap_Entry node)
+PtrTreeMap_Entry __TreeMapEntry_traverse(
+    PtrTreeMap_Entry self,
+    int depth,
+    uint8_t isBfs,
+    int (*visit)(PtrTreeMap_Entry node, int depth))
 {
-    printf("Fixing invalid node [%p]: %s\n", node, node->key);
-    // If aunt is black we recolor
-    // if aunt is read we rebalance
+    if (self == NULL)
+        return NULL;
 
+    if (isBfs)
+    {
+        visit(self, depth);
+    }
+
+    PtrTreeMap_Entry res = NULL;
+    if (self->__left != NULL)
+    {
+        res = __TreeMapEntry_traverse(self->__left, depth + 1, isBfs, visit);
+    }
+    if (self->__right != NULL)
+    {
+        res = __TreeMapEntry_traverse(self->__right, depth + 1, isBfs, visit);
+    }
+
+    if (!isBfs)
+    {
+        visit(self, depth);
+    }
+
+    return res;
+}
+
+void _printNode(PtrTreeMap_Entry self)
+{
+    if (self == NULL)
+    {
+        printf("\n");
+        return;
+    }
+    if (self->__color == TreeMap_Entry_BLACK)
+    {
+        printf(" [BLACK]");
+    }
+    else
+    {
+        printf(" [RED]");
+    }
+    printf(" %s -> %d\n", self->key, self->value);
+}
+
+PtrTreeMap_Entry _get_uncle(PtrTreeMap_Entry self)
+{
+    PtrTreeMap_Entry papa, grandpapa;
+    if (self->__parent != NULL)
+    {
+        papa = self->__parent;
+        grandpapa = papa->__parent;
+        if (grandpapa != NULL)
+        {
+            if (grandpapa->__right == papa)
+            {
+                return grandpapa->__left;
+            }
+            else
+            {
+                return grandpapa->__right;
+            }
+        }
+    }
+    return NULL;
+}
+
+int __TreeMap_dump_node(PtrTreeMap_Entry self, int depth)
+{
+    for (int i = 0; i < depth; ++i)
+    {
+        printf("-|");
+    }
+    _printNode(self);
+    return 0;
+}
+
+void _dump_tree(PtrTreeMap_Entry node)
+{
+    if (node == NULL)
+        return;
+    // find root
+    PtrTreeMap_Entry root = node;
+    while (root->__parent != NULL)
+    {
+        root = root->__parent;
+    }
+    // print tree
+    __TreeMapEntry_traverse(root, 0, 1, __TreeMap_dump_node);
+}
+
+void _fix_node(PtrTreeMap_Entry node)
+{
+    PtrTreeMap_Entry uncle = _get_uncle(node);
+    printf("Fixing invalid node [%p]:", node);
+    _printNode(node);
+    printf("Uncle [%p]", uncle);
+    _printNode(uncle);
+    uint8_t ucolor = TreeMap_Entry_BLACK;
+    if (uncle != NULL)
+    {
+        ucolor = uncle->__color;
+    }
+    printf("Tree BEFORE >>>>>>>>>>>>>>>>\n");
+    _dump_tree(node);
+    // If uncle is black we recolor
+    // if uncle is red we rebalance
+    printf("Tree AFTER >>>>>>>>>>>>>>>>\n");
+    _dump_tree(node);
 }
 
 void balance(PtrTreeMap_Entry node)
@@ -136,9 +244,10 @@ void balance(PtrTreeMap_Entry node)
     // Check the __color of the node
     if (node->__parent != NULL)
     {
+        // (TREE PORPERTY):  No red node has a red child
         if (node->__color == TreeMap_Entry_RED && node->__parent->__color == TreeMap_Entry_RED)
         {
-            fix_node(node);
+            _fix_node(node);
         }
     }
 
@@ -186,71 +295,20 @@ void __TreeMap_put(PtrTreeMap self, char *key, int value)
     }
 }
 
-PtrTreeMap_Entry __TreeMapEntry_traverse(
-    PtrTreeMap_Entry self,
-    int depth,
-    uint8_t isBfs,
-    int (*visit)(PtrTreeMap_Entry node, int depth))
-{
-    if (self == NULL)
-        return NULL;
-
-    if (isBfs)
-    {
-        visit(self, depth);
-    }
-
-    PtrTreeMap_Entry res = NULL;
-    if (self->__left != NULL)
-    {
-        res = __TreeMapEntry_traverse(self->__left, depth + 1, isBfs, visit);
-    }
-    if (self->__right != NULL)
-    {
-        res = __TreeMapEntry_traverse(self->__right, depth + 1, isBfs, visit);
-    }
-
-    if (!isBfs)
-    {
-        visit(self, depth);
-    }
-
-    return res;
-}
-
 int __TreeMap_get(struct TreeMap *self, char *key)
 {
 }
 
-int __TreeMap_dump_node(PtrTreeMap_Entry self, int depth)
-{
-    if (self != NULL)
-    {
-        for (int i = 0; i < depth; ++i)
-        {
-            printf("-|");
-        }
-
-        if (self->__color == TreeMap_Entry_BLACK)
-        {
-            printf(" [BLACK]");
-        }
-        else
-        {
-            printf(" [RED]");
-        }
-        printf(" %s -> %d\n", self->key, self->value);
-    }
-    return 0;
-}
 void __TreeMap_dump(PtrTreeMap self)
 {
-    __TreeMapEntry_traverse(self->__root, 0, 1, __TreeMap_dump_node);
+    _dump_tree(self->__root);
 }
+
 int __TreeMap_size(struct TreeMap *self)
 {
     return self->__count;
 }
+
 PtrTreeMap_Iter __TreeMap_iter(struct TreeMap *self)
 {
     PtrTreeMap_Iter res = malloc(sizeof((*res)));
