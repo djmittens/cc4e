@@ -91,19 +91,26 @@ void __TreeMap_free(PtrTreeMap self)
     free(self);
 }
 
-void __TreeMap_insertNode(PtrTreeMap_Entry root, PtrTreeMap_Entry node)
+int __TreeMap_insertNode(PtrTreeMap_Entry root, PtrTreeMap_Entry node)
 {
-    if (strncmp(root->key, node->key, 100) > 0) // TOOD(nick): MAX count here
+    int cmp = strncmp(root->key, node->key, 100);
+    if (cmp == 0)
+    {
+        root->value = node->value;
+        return 0;
+    }
+    else if (cmp > 0) // TOOD(nick): MAX count here
     {
         if (root->__right == NULL)
         {
             node->__color = TreeMap_Entry_RED;
             node->__parent = root;
             root->__right = node;
+            return 1;
         }
         else
         {
-            __TreeMap_insertNode(root->__right, node);
+            return __TreeMap_insertNode(root->__right, node);
         }
     }
     else
@@ -113,10 +120,11 @@ void __TreeMap_insertNode(PtrTreeMap_Entry root, PtrTreeMap_Entry node)
             node->__color = TreeMap_Entry_RED;
             node->__parent = root;
             root->__left = node;
+            return 1;
         }
         else
         {
-            __TreeMap_insertNode(root->__left, node);
+            return __TreeMap_insertNode(root->__left, node);
         }
     }
 }
@@ -248,7 +256,7 @@ void _fix_node(PtrTreeMap_Entry node)
     _dump_tree(node);
 }
 
-void balance(PtrTreeMap_Entry node)
+void __TreeMap_balance(PtrTreeMap_Entry node)
 {
     if (node == NULL)
         return;
@@ -263,7 +271,7 @@ void balance(PtrTreeMap_Entry node)
         }
     }
 
-    balance(node->__parent);
+    __TreeMap_balance(node->__parent);
 }
 
 void __TreeMap_put(PtrTreeMap self, char *key, int value)
@@ -290,17 +298,24 @@ void __TreeMap_put(PtrTreeMap self, char *key, int value)
         new->__left = NULL;
         new->__right = NULL;                // TODO (nick) : there was a bug here, for uninitilized memory, how do we catch this?
         new->__color = TreeMap_Entry_BLACK; // By default we also start as black
-        self->__head = new;
         if (self->__root == NULL)
         {
             self->__root = new;
+            self->__head = new;
+            self->__count++;
         }
         else
         {
-            __TreeMap_insertNode(self->__root, new);
-            balance(new);
+            if (__TreeMap_insertNode(self->__root, new))
+            {
+                self->__head = new;
+                self->__count++;
+                __TreeMap_balance(new);
+            } else {
+                free(new->key);
+                free(new);
+            }
         }
-        self->__count++;
     }
     else
     {
@@ -435,7 +450,7 @@ int main(void)
     PtrTreeMap map = TreeMap_new();
     if (map)
     {
-        for (int i = 0; i < 20; ++i)
+        for (int i = 0; i < 30; ++i)
         {
             int k = rand();
             char v[2];
